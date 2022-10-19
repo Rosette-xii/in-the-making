@@ -8,7 +8,7 @@ export default {
   mounted() {
     let vh = window.innerHeight * 0.01
     document.documentElement.style.setProperty('--vh', `${vh}px`)
-    alert(vh)
+    // alert(vh)
   },
 }
 </script>
@@ -29,10 +29,14 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
   font-size: 16px;
   height: calc(var(--vh, 1vh) * 100);
+  width: 100%;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(230, 198, 224);
 }
 a {
   color: #fff;
@@ -40,11 +44,6 @@ a {
 }
 body {
   box-sizing: border-box;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgb(230, 198, 224);
 }
 .main {
   position: relative;
