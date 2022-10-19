@@ -1,5 +1,5 @@
 <template>
-  <section class="main-block">
+  <section class="main">
     <div class="home main-area"
          :class="{active:isShow}">
       <button class="start-btn"
@@ -18,7 +18,7 @@
         </ul>
         <p>說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字活動說明文字</p>
         <button class="go-btn"
-                @click="$router.push('/Choose')">
+                @click="nextPage">
           出發！
         </button>
       </div>
@@ -27,9 +27,6 @@
 </template>
 
 <script>
-// @ is an alias to /src
-// import HelloWorld from '@/components/HelloWorld.vue'
-
 export default {
   name: 'Home',
   data() {
@@ -37,47 +34,22 @@ export default {
       isShow: false,
     }
   },
-  components: {
-    // HelloWorld
+  methods: {
+    nextPage() {
+      this.$router.push({
+        path: '/quiz0',
+        query: {
+          id: 0,
+        },
+      })
+    },
   },
 }
 </script>
 <style lang="scss">
-@mixin pc {
-  @media (min-width: 576px) {
-    @content;
-  }
-}
-.main-block {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  background-size: cover;
-  overflow: hidden;
-  @include pc {
-    width: 375px;
-    height: 667px;
-    border-radius: 20px;
-  }
-}
-.main-area {
-  width: 100%;
-  height: 100%;
-}
 .home {
   background-image: url('../assets/images/temp-bg.jpg');
 }
-// .active::after {
-//   content: '';
-//   position: absolute;
-//   top: 0;
-//   left: 0;
-//   width: 100%;
-//   height: 100%;
-//   background: hsla(0, 0%, 100%, 0.3);
-//   filter: blur(5px);
-//   z-index: -1;
-// }
 .start-btn {
   position: absolute;
   left: 50%;
@@ -113,17 +85,5 @@ h1 {
 }
 p {
   padding-bottom: 24px;
-}
-.close-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  padding: 8px;
-  background-color: transparent;
-  font-size: 24px;
-}
-.go-btn {
-  padding: 8px 60px;
-  border-radius: 20px;
 }
 </style>

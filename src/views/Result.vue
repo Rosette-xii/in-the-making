@@ -1,6 +1,6 @@
 <template>
-  <section class="main-block">
-    <div class="result main-area">
+  <section class="main">
+    <div class="main-area">
       <div class="container">
         <div class="content-head">
           <span class="scroll-bar"></span>
@@ -9,121 +9,125 @@
           <p>“謎之笑茉莉”</p>
         </div>
         <div class="content-body">
-          <!-- <div class="flower">
-            <span class="flower-1"></span>
-            <span class="flower-2"></span>
-            <span class="flower-3"></span>
-            <span class="flower-4"></span>
-            <span class="flower-5"></span>
-          </div> -->
-          <canvas ref="flower"
+          <canvas ref="flowerAll"
                   width="315"
                   height="375"></canvas>
+          <canvas class="flowerHead"
+                  ref="flowerHead"
+                  width="215"
+                  height="215"></canvas>
         </div>
         <div class="content-foot">
-          <button class="btn result-btn">把你的花種在 moda garden 裡吧！</button>
+          <button class="btn result-btn"
+                  @click="goGarden">種花</button>
+          <button class="btn result-btn"
+                  ref="downloadImg"
+                  @click="downloadFlower">下載圖片</button>
         </div>
       </div>
     </div>
   </section>
 </template>
 <script>
+import { uploadData } from '../api/in-the-making.js'
 export default {
   data() {
     return {
-      flowerObj: [],
-      scale: 0.5,
-      imgArr: [],
+      ratio: 0.5,
+      flowerData: {},
+      flowerHeadUrl: '',
+      flowerAllUrl: '',
     }
-    // flowerObj: [
-    //   {
-    //     name: null,
-    //     imgSrc: require('../assets/images/temp-flower-head.png'),
-    //     x: 0,
-    //     y: 0,
-    //   },
-    //   {
-    //     name: null,
-    //     imgSrc: require('../assets/images/temp-flower-petal.png'),
-    //     x: 10,
-    //     y: 10,
-    //   },
-    //   {
-    //     name: null,
-    //     imgSrc: require('../assets/images/temp-flower-face.png'),
-    //     x: 20,
-    //     y: 20,
-    //   },
-    //   {
-    //     name: null,
-    //     imgSrc: require('../assets/images/temp-flower-body.png'),
-    //     x: 30,
-    //     y: 30,
-    //   },
-    //   {
-    //     name: null,
-    //     imgSrc: require('../assets/images/temp-flower-hand.png'),
-    //     x: 40,
-    //     y: 40,
-    //   },
-    // ]
   },
   methods: {
-    // loadImg(img) {
-    //   console.log(img)
-    //   return new Promise((resolve, reject) => {
-    //     if (img !== '') {
-    //       resolve(img)
-    //     } else {
-    //       reject(new Error('失敗'))
-    //     }
-    //   })
-    // },
-    // async drawFlower(ctx, obj, x, y, width, height) {
-    //   const res = await this.loadImg(obj.part)
-    //   ctx.drawImage(res, x, y, width, height)
-    // },
-    drawFlower(ctx) {
-      this.flowerObj.forEach((obj) => {
-        // obj.part.onl
-        //   await ctx.doad = async () => {
-        //   console.log(obj.part
-        // }
-        console.log(obj.part)
-        ctx.drawImage(obj.part, obj.x, obj.y, obj.width * this.scale, obj.height * this.scale)
+    setFlower() {
+      localStorage.setItem('flower', JSON.stringify(this.flowerData))
+    },
+    createFlower(flowerObj, ctx) {
+      flowerObj.forEach((flower) => {
+        ctx.drawImage(flower.part, flower.x, flower.y, flower.width * this.ratio, flower.height * this.ratio)
       })
-      // let load = false;
-      // let id = 0;
-      // while(id <= 4) {
-      //   this.flowerObj.find(f => f.id === id).part.src = obj.imgSrc
-      //   obj.part.onload = async () => {
-      //     console.log(obj.part.src = obj.imgSrc)
-      //     await ctx.drawImage(obj.part, obj.x, obj.y, obj.width * this.scale, obj.height * this.scale)
-      //   }
-      // }
-      console.log(ctx)
+      const flowerAllCvs = this.$refs.flowerAll
+      flowerAllCvs.toBlob((blob) => {
+        this.flowerAllUrl = blob
+      }, 'image/png')
+    },
+    downloadFlower() {
+      const flowerAllCvs = this.$refs.flowerAll
+      flowerAllCvs.toBlob(
+        (blob) => {
+          const url = URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = 'flower.png'
+          link.click()
+          // 使用完的物件記得手動清除，不然GC不會幫你清
+          URL.revokeObjectURL(url)
+        },
+        'image/png',
+        1
+      )
+    },
+    goGarden() {
+      const formData = new FormData()
+      formData.append('files.flowerHead', this.flowerHeadUrl)
+      formData.append('files.flowerAll', this.flowerAllUrl)
+      let obj = {
+        name: this.flowerData.name,
+        message: this.flowerData.message,
+      }
+      formData.append('data', JSON.stringify(obj))
+      uploadData(formData)
+        .then((response) => {
+          if (response.status === 200) {
+            this.$router.push({
+              name: 'Garden',
+            })
+          }
+        })
+        .catch((err) => {
+          console.log(err)
+        })
     },
   },
   mounted() {
-    const flowerCvs = this.$refs.flower
-    const ctx = flowerCvs.getContext('2d')
-    const cvsWidth = flowerCvs.width
-    this.scale = 0.5
+    // 取得storage
+    const flowerData = JSON.parse(localStorage.getItem('flower'))
+    if (flowerData) {
+      this.flowerData = flowerData
+    }
+
+    const flowerAllCvs = this.$refs.flowerAll
+    const flowerHeadCvs = this.$refs.flowerHead
+    // 建立畫布、畫花
+    const ctx = flowerAllCvs.getContext('2d')
+    const cvsWidth = flowerAllCvs.width
+    let images = []
     const flowerHead = new Image()
-    flowerHead.src = require('../assets/images/temp-flower-head.png')
     const flowerPetal = new Image()
-    flowerPetal.src == require('../assets/images/temp-flower-petal.png')
     const flowerFace = new Image()
-    flowerFace.src = require('../assets/images/temp-flower-face.png')
     const flowerBody = new Image()
-    flowerBody.src = require('../assets/images/temp-flower-body.png')
     const flowerHand = new Image()
-    flowerHand.src = require('../assets/images/temp-flower-hand.png')
-    this.flowerObj = [
+
+    images.push(flowerPetal, flowerHead, flowerFace, flowerBody, flowerHand)
+
+    flowerPetal.src = this.flowerData.flower[0]
+    flowerHead.src = this.flowerData.flower[1]
+    flowerFace.src = this.flowerData.flower[2]
+    flowerBody.src = this.flowerData.flower[3]
+    flowerHand.src = this.flowerData.flower[4]
+    images.forEach((image) => {
+      image.onload = () => {
+        triggerWhenImageReady()
+      }
+    })
+
+    // 定位每朵花的部位
+    const flowerObj = [
       {
         id: 0,
         part: flowerBody,
-        x: cvsWidth / 2 - 127 * 0.5 * this.scale,
+        x: cvsWidth / 2 - 127 * 0.5 * this.ratio,
         y: 90,
         width: 127,
         height: 555,
@@ -131,7 +135,7 @@ export default {
       {
         id: 1,
         part: flowerHand,
-        x: cvsWidth / 2 - 301 * 0.5 * this.scale,
+        x: cvsWidth / 2 - (301 / 2) * this.ratio,
         y: 170,
         width: 301,
         height: 235,
@@ -139,7 +143,7 @@ export default {
       {
         id: 2,
         part: flowerPetal,
-        x: cvsWidth / 2 - 357 * 0.5 * this.scale,
+        x: cvsWidth / 2 - (357 / 2) * this.ratio,
         y: 15,
         width: 357,
         height: 347,
@@ -147,7 +151,7 @@ export default {
       {
         id: 3,
         part: flowerHead,
-        x: cvsWidth / 2 - 211 * 0.5 * this.scale,
+        x: cvsWidth / 2 - (211 / 2) * this.ratio,
         y: 50,
         width: 211,
         height: 211,
@@ -155,27 +159,56 @@ export default {
       {
         id: 4,
         part: flowerFace,
-        x: cvsWidth / 2 - 107 * 0.5 * this.scale,
+        x: cvsWidth / 2 - (107 / 2) * this.ratio,
         y: 85,
         width: 107,
         height: 98,
       },
     ]
-    this.$nextTick(() => {
-      this.drawFlower(ctx)
-    })
+    let currentLoaded = 0
+    const _this = this
+    function triggerWhenImageReady() {
+      currentLoaded++
+      if (currentLoaded === images.length) {
+        // console.log('all done')
+        createFlowerHead()
+        _this.createFlower(flowerObj, ctx)
+      }
+    }
+
+    // 生成花頭圖片
+    function createFlowerHead() {
+      const ctxHead = flowerHeadCvs.getContext('2d')
+      ctxHead.drawImage(flowerObj[2].part, 107 - (357 / 2) * _this.ratio, 107 - (347 / 2) * _this.ratio, flowerObj[2].width * _this.ratio, flowerObj[2].height * _this.ratio)
+      ctxHead.drawImage(flowerObj[3].part, 107 - (211 / 2) * _this.ratio, 107 - (211 / 2) * _this.ratio, flowerObj[3].width * _this.ratio, flowerObj[3].height * _this.ratio)
+      _this.flowerData.myFlower = flowerHeadCvs.toDataURL('image/png')
+      _this.flowerHeadUrl = flowerHeadCvs.toBlob((blob) => {
+        _this.flowerHeadUrl = blob
+      }, 'image/png')
+      _this.setFlower()
+    }
   },
 }
 </script>
-<style lang="scss">
+<style lang="scss" scope>
 .flower {
   position: relative;
 }
-span {
-  display: inline-block;
+.content-body {
+  position: relative;
+  margin: 24px 0;
+}
+.content-foot {
+  display: flex;
+}
+.flowerHead {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
 }
 .result-btn {
-  width: 100%;
+  width: 50%;
   padding: 8px;
   border-radius: 20px;
 }
