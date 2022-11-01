@@ -1,142 +1,148 @@
 <template>
-  <section class="main"
-           ref="main">
-    <div id="world"
-         ref="world"></div>
-    <div class="main-area">
-      <div class="container">
-        <div class="content-head">
-          <h2>{{name}}</h2>
-          <h3>{{message}}</h3>
+  <section class="main garden">
+    <Loading v-if="$store.state.isLoading" />
+    <div class="container">
+      <div v-show="!showFlower">
+        <div class="content-head border-2">
+          <button class="check-flower-btn border-2"
+                  @click="showMyFlower">
+            <img src="../assets/images/others/mini-flower.svg"
+                 alt="check e-flower">查看 e-flower
+          </button>
+          <button class="replay-btn"
+                  @click="replay">
+            <img src="../assets/images/others/replay.svg"
+                 alt="check e-flower">重新測驗
+          </button>
+        </div>
+        <div class="content-body border-2"
+             ref="contentBody">
+          <div class="info">
+            <div class="marquee">
+              <marquee-text :duration="20">
+                <strong>數位發展部：</strong>點擊看看大家是什麼花，以及適合到展場汲取什麼樣的數位養分呢！11/10 - 11/13 到世貿中心一館資訊月瞭解更多。
+              </marquee-text>
+            </div>
+            <div class="user-info"
+                 v-show="showMessage">
+              <div class="user-img">
+                <img :src="flowerUrl"
+                     alt="my e-flower">
+              </div>
+              <div class="user-message">
+                <h2>{{name}}</h2>
+                <p>推薦你的 IN THE MAKING 展品：</p>
+                <p><span>{{title}}</span>，{{introduction}}</p>
+                <button class="close-btn"
+                        @click="showMessage=false">
+                  <img src="../assets/images/others/close-black.svg"
+                       alt="close message">
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="world"
+               ref="world"></div>
+        </div>
+      </div>
+      <div class="eFlower"
+           v-show="showFlower">
+        <div class="content-head border-2">
+          你的專屬 e-flower
+          <button class="close-btn"
+                  @click="showFlower = false">
+            <img src="../assets/images/others/close-purple.svg"
+                 alt="check e-flower">
+          </button>
+        </div>
+        <div class="content-body border-2">
+          <img :src="this.flowerData.eFlowerUrl"
+               alt="你的專屬e-flower">
         </div>
       </div>
     </div>
   </section>
 </template>
 <script>
+import Loading from '@/components/Loading'
+import MarqueeText from 'vue-marquee-text-component'
 import * as Matter from 'matter-js'
-import { listData, totalData } from '../api/in-the-making.js'
+import { listData } from '../api/in-the-making.js'
 export default {
   name: 'Garden',
+  components: {
+    MarqueeText,
+    Loading,
+  },
   data() {
     return {
       flowerData: {},
-      imgList: [
-        {
-          imgUrl: require('@/assets/images/temp-flower-head/flower1.png'),
-          w: 215,
-          h: 215,
-          name: 'name1',
-          message: 'message1',
-        },
-        {
-          imgUrl: require('@/assets/images/temp-flower-head/flower2.png'),
-          w: 215,
-          h: 215,
-          name: 'name2',
-          message: 'message2',
-        },
-        {
-          imgUrl: require('@/assets/images/temp-flower-head/flower3.png'),
-          w: 215,
-          h: 215,
-          name: 'name3',
-          message: 'message3',
-        },
-        {
-          imgUrl: require('@/assets/images/temp-flower-head/flower4.png'),
-          w: 215,
-          h: 215,
-          name: 'name4',
-          message: 'message4',
-        },
-        {
-          imgUrl: require('@/assets/images/temp-flower-head/flower5.png'),
-          w: 215,
-          h: 215,
-          name: 'name5',
-          message: 'message5',
-        },
-        {
-          imgUrl: require('@/assets/images/temp-flower-head/flower6.png'),
-          w: 215,
-          h: 215,
-          name: 'name6',
-          message: 'message6',
-        },
-        {
-          imgUrl: require('@/assets/images/temp-flower-head/flower7.png'),
-          w: 215,
-          h: 215,
-          name: 'name7',
-          message: 'message7',
-        },
-        {
-          imgUrl: require('@/assets/images/temp-flower-head/flower8.png'),
-          w: 215,
-          h: 215,
-          name: 'name8',
-          message: 'message8',
-        },
-        {
-          imgUrl: require('@/assets/images/temp-flower-head/flower9.png'),
-          w: 215,
-          h: 215,
-          name: 'name9',
-          message: 'message9',
-        },
-        {
-          imgUrl: require('@/assets/images/temp-flower-head/flower10.png'),
-          w: 215,
-          h: 215,
-          name: 'name10',
-          message: 'message10',
-        },
-      ],
       name: '',
-      message: '',
+      title: '',
+      introduction: '',
+      flowerUrl: '',
       totalNum: 0,
+      showMessage: false,
+      showFlower: false,
+      famousNum: 10,
     }
   },
-  // methods: {
-  //
-  // },
+  methods: {
+    showMyFlower() {
+      this.showMessage = false
+      this.showFlower = true
+    },
+    goResult() {
+      this.$router.replace({
+        name: 'Result',
+      })
+    },
+    replay() {
+      this.$store.commit('REPLAY')
+      this.$router.replace({
+        name: 'Home',
+      })
+    },
+  },
   mounted() {
-    // 取得storage
-    const flowerData = JSON.parse(localStorage.getItem('flower'))
-    if (flowerData) {
-      this.flowerData = flowerData
-      this.name = this.flowerData.name
-      this.message = this.flowerData.message
+    this.$store.commit('LOADING', true)
+    const _this = this
+    function getApiData() {
+      let axiosParams = new URLSearchParams()
+      axiosParams.append('_sort', 'id')
+      let params = {
+        params: axiosParams,
+      }
+      listData(params)
+        .then((res) => {
+          let allData = res.data
+          let randomIdx = []
+          let randomNum
+          while (randomIdx.length < 9) {
+            randomNum = Math.floor(Math.random() * (allData.length - 1))
+            if (randomIdx.indexOf(randomNum) === -1) {
+              randomIdx.push(randomNum)
+            }
+          }
+          let randomData = []
+          let addNum = 0
+          for (let i = 0; i < randomIdx.length; i++) {
+            randomData.push(allData[randomIdx[i]])
+            addNum += 1
+          }
+          if (addNum === 9) {
+            _this.$store.commit('LOADING', false)
+            Example.sprites(randomData)
+          }
+        })
+        .catch((err) => console.log(err))
     }
     getApiData()
-    async function getApiData() {
-      try {
-        const totalNum = await totalData()
-        const allData = await listData()
-        let randomArr = []
-        let randomNum
-        while (randomArr.length < 9) {
-          randomNum = Math.floor(Math.random() * (totalNum.data - 2)) + 1
-          if (randomArr.indexOf(randomNum) === -1) {
-            randomArr.push(randomNum)
-          }
-        }
-        let randomData = []
-        for (let i = 0; i < randomArr.length; i++) {
-          randomData.push(allData.data[randomArr[i]])
-        }
-        setTimeout(() => {
-          Example.sprites(randomData)
-        }, 1000)
-      } catch (err) {
-        throw new Error(err)
-      }
-    }
+
+    this.flowerData = this.$store.state.flowerData
     // 定義作用畫布範圍為 #world
     const canvas = this.$refs.world
-    const mainArea = this.$refs.main
-    const _this = this
+    const mainArea = this.$refs.contentBody
 
     // matter js
     let Example = {}
@@ -157,9 +163,8 @@ export default {
         world = engine.world
 
       // 設定畫布寬、高 = 視窗的寬、高
-      let width = mainArea.offsetWidth
-      let height = mainArea.offsetHeight
-
+      let width = mainArea.offsetWidth - 5
+      let height = 420
       // create renderer
       let render = Render.create({
         // render 範圍為 canvas
@@ -211,15 +216,17 @@ export default {
         str = Math.floor(Math.random() * 9)
         arr.find((j) => j == str) === undefined ? arr.push(str) : i--
       }
-      const ratio = 0.6
+      const ratio = 0.5
       // Composites.stack(x軸開始放置位置, y軸開始放置位置, grid寬, grid高,callbackFun(render物件))
       // 建立當前使用者的花
       let main = Composites.stack(0, 0, 1, 1, 0, 0, function (x, y, index) {
         // 碰撞半徑範圍 imgList[index].h * ratio * 0.9 / 2
         // Bodies.circle(x軸,y軸,radius半徑)
-        return Bodies.circle(width / 2 - (215 * 0.6) / 2, index * 20, 70, {
+        return Bodies.circle(width / 2 - (219 * ratio) / 2, index * 20, (219 / 2) * ratio, {
           name: _this.flowerData.name,
-          message: _this.flowerData.message,
+          title: _this.flowerData.exhibits.title,
+          introduction: _this.flowerData.exhibits.introduction,
+          flowerUrl: _this.flowerData.myFlower,
           speed: 1,
           density: 0.0005,
           frictionAir: 0.06,
@@ -229,33 +236,32 @@ export default {
             sprite: {
               texture: _this.flowerData.myFlower,
               // 物件x軸比例
-              xScale: ratio * 1.5,
+              xScale: 1.2 * ratio,
               // 物件y軸比例
-              yScale: ratio * 1.5,
+              yScale: 1.2 * ratio,
             },
           },
         })
       })
       // 建立隨機的花
-      let random = Composites.stack(width / 4, 600, 9, 1, 0, 0, function (x, y, index) {
+      let random = Composites.stack(width / 4, height - 25.25 - 5 * 40, 9, 1, 0, 0, function (x, y, index) {
         // Bodies.circle(x軸,y軸,radius半徑)
-        //  return Bodies.circle((index % 5) * (width / 5) + Common.random(-200, 200), index * 20, (215 * ratio * 0.7) / 2,
-        return Bodies.circle(width / 3, 500 + Common.random(-100, 100), 50, {
+        return Bodies.circle(width / 4, height - 25.25 - 5 * 60 + Common.random(-100, 100), 35, {
           name: randomData[arr[index]].name,
-          message: randomData[arr[index]].message,
+          title: randomData[arr[index]].title,
+          introduction: randomData[arr[index]].introduction,
+          flowerUrl: randomData[arr[index]].flowerHead.url,
           density: 0.0005,
           frictionAir: 0.06,
           restitution: 0.3,
           friction: 10,
           render: {
             sprite: {
-              // _this.randomData[arr[index]].flowerHead.url
-              // _this.imgList[arr[index]].imgUrl
               texture: randomData[arr[index]].flowerHead.url,
               // 物件x軸比例
-              xScale: ratio,
+              xScale: ratio * 0.9,
               // 物件y軸比例
-              yScale: ratio,
+              yScale: ratio * 0.9,
             },
           },
         })
@@ -280,9 +286,16 @@ export default {
       Composite.add(world, mouseConstraint)
       Events.on(mouseConstraint, 'startdrag', function (e) {
         if (e.body) {
-          e.body.render.opacity = 0.5
-          _this.name = e.body.name
-          _this.message = e.body.message
+          if (!e.body.name) {
+            _this.showMessage = false
+          } else {
+            _this.showMessage = true
+            e.body.render.opacity = 0.5
+            _this.name = e.body.name
+            _this.title = e.body.title
+            _this.introduction = e.body.introduction
+            _this.flowerUrl = e.body.flowerUrl
+          }
         }
       })
       Events.on(mouseConstraint, 'enddrag', function (e) {
@@ -314,31 +327,159 @@ export default {
     }
     Example.sprites.title = 'Sprites'
     Example.sprites.for = '>=0.14.2'
-
-    window.addEventListener('popstate', (e) => {
-      console.log('上一頁')
-      e.stopPropagation()
-      console.log(e.target)
-      console.log(e.target.navigation.canGoBack)
-      console.log(e.target.navigation.canGoForward)
-    })
   },
 }
 </script>
 <style lang="scss">
-@mixin pc {
-  @media (min-width: 576px) {
-    @content;
-  }
-}
+@import '@/assets/style/_mixin.scss';
+@import '@/assets/style/_variable.scss';
 #world {
   position: absolute;
   left: 0;
-  bottom: 0;
+  bottom: -5px;
   width: 100%;
   canvas {
+    z-index: 1;
     width: 100%;
   }
+}
+.garden {
+  &.main {
+    position: relative;
+    @include pc {
+      display: flex;
+      align-items: center;
+    }
+  }
+  .container {
+    padding: 15px;
+  }
+  .content-head {
+    position: relative;
+    padding: 8px;
+    display: flex;
+    justify-content: space-between;
+    background-color: $purple;
+    color: #fff;
+  }
+  button img {
+    margin-right: 6px;
+  }
+  .check-flower-btn {
+    padding: 5px 16px;
+    display: flex;
+    background-color: #ffe1cd;
+    border-radius: 100px;
+    color: #000;
+    font-weight: bold;
+  }
+  .replay-btn {
+    padding: 5px;
+    background-color: transparent;
+    font-weight: bold;
+    border: none;
+  }
+  .content-body {
+    position: relative;
+    margin-top: -2px;
+    max-width: 384px;
+    height: 560px;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url('../assets/images/others/square-bg.svg');
+    background-size: 105%;
+    overflow: hidden;
+    @include pc {
+      width: 341px;
+    }
+  }
+  .info {
+    z-index: 20;
+    position: absolute;
+    top: 0;
+    width: 100%;
+  }
+  .marquee {
+    padding: 10px 15px;
+    background-color: #fff;
+    border-bottom: 2px solid #000;
+  }
+  .user-info {
+    z-index: 5;
+    padding: 10px 15px;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    align-items: center;
+    background-color: #ffec4c;
+    border-bottom: 2px solid #000;
+    text-align: left;
+  }
+  .user-img {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80px;
+    height: 80px;
+    background-color: #fff;
+    border: 2px solid #000;
+    border-radius: 50%;
+    img {
+      width: 80%;
+    }
+  }
+  .user-message {
+    position: relative;
+    overflow: hidden;
+    h2 {
+      padding-bottom: 4px;
+    }
+    p {
+      font-size: 12px;
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+    span {
+      font-size: 12px;
+      font-weight: bold;
+      color: $dark-purple;
+    }
+    .close-btn {
+      right: -13px;
+      top: 13px;
+    }
+  }
+}
+.eFlower {
+  z-index: 10;
+  .content-head {
+    padding: 0;
+    height: 55px;
+    position: relative;
+    display: block;
+    background-color: #ffec4c;
+    color: $purple;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 50px;
+  }
+  .content-body {
+    height: auto;
+    display: flex;
+    align-items: center;
+  }
+  img {
+    transform: scale(1.02);
+    width: 100%;
+    height: auto;
+  }
+}
+.close-btn {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 8px;
+  background-color: transparent;
+  border: none;
 }
 </style>
 

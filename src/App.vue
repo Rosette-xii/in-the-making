@@ -8,85 +8,96 @@ export default {
   mounted() {
     let vh = window.innerHeight * 0.01
     document.documentElement.style.setProperty('--vh', `${vh}px`)
-    // alert(vh)
   },
 }
 </script>
 <style lang="scss">
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Russo+One&display=swap');
+@import '@/assets/style/_mixin.scss';
+@import '@/assets/style/_variable.scss';
 /* mobile 375*667 */
 /* pc 1280*720 */
-@mixin pc {
-  @media (min-width: 576px) {
-    @content;
-  }
-}
 * {
   margin: 0;
   padding: 0;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+body {
+  width: 100%;
+  height: 100vh;
+  box-sizing: border-box;
+  // background-color: $blue;
+  overflow: hidden;
+  @include pc {
+    background-image: url('./assets/images/covers/pc-bg.jpg');
+    background-size: cover;
+  }
 }
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  font-size: 16px;
-  height: calc(var(--vh, 1vh) * 100);
   width: 100%;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgb(230, 198, 224);
+  // background-color: $blue;
+  text-align: center;
+  font-family: 'Noto Sans TC', sans-serif;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  height: calc(var(--vh, 1vh) * 100);
+  @include pc {
+    height: 100%;
+  }
 }
 a {
   color: #fff;
   text-decoration: none;
 }
-body {
-  box-sizing: border-box;
-}
 .main {
   position: relative;
-  width: 100vw;
-  // height: 100vh;
-  height: calc(var(--vh, 1vh) * 100);
+  width: 100%;
+  height: 100%;
   background-size: cover;
-  overflow: hidden;
+  background-position: 50% 50%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  @include pc {
+    overflow-y: hidden;
+  }
+  background-image: url('./assets/images/covers/ee_cover_garden_BG大.jpg');
   @include pc {
     width: 375px;
     height: 667px;
-    border-radius: 20px;
+    border: 2px solid #000;
+    border-radius: 10px;
   }
 }
-.main-area {
-  width: 100%;
-  height: 100%;
-  background-color: #fff;
-}
 .container {
-  max-width: 540px;
+  max-width: 345px;
   margin: 0 auto;
-  padding: 30px;
+  padding: 24px;
 }
 ul {
   list-style-type: none;
 }
 button {
-  background-color: #1972f8;
+  background-color: $main-color;
   color: #fff;
-  border: none;
+  border: 2px solid #000;
   cursor: pointer;
 }
-.close-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  padding: 8px;
-  background-color: transparent;
-  font-size: 24px;
-}
 .go-btn {
-  padding: 8px 60px;
-  border-radius: 20px;
+  padding: 10px 40px;
+  background: $gradient-purple;
+  font-weight: bold;
+}
+.border-1 {
+  border: 1px solid #000;
+}
+.border-2 {
+  border: 2px solid #000;
 }
 </style>

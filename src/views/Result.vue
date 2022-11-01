@@ -1,168 +1,240 @@
 <template>
   <section class="main">
-    <div class="main-area">
-      <div class="container">
-        <div class="content-head">
-          <span class="scroll-bar"></span>
-          <h2>你的 e-flower</h2>
-          <p>一朵正在盛開中的</p>
-          <p>“謎之笑茉莉”</p>
+    <Loading v-if="$store.state.isLoading" />
+    <div class="container">
+      <div class="content-body">
+        <canvas style="display:none"
+                ref="flowerResult"
+                width="612"
+                height="982"></canvas>
+        <canvas style="display:none"
+                class="flowerAll"
+                ref="flowerAll"
+                width="548"
+                height="772"></canvas>
+        <canvas style="display:none"
+                class="flowerHead"
+                ref="flowerHead"
+                width="216"
+                height="216"></canvas>
+        <div class="e-flower">
+          <img :src="showUrl"
+               alt="Your e-flower.">
         </div>
-        <div class="content-body">
-          <canvas ref="flowerAll"
-                  width="315"
-                  height="375"></canvas>
-          <canvas class="flowerHead"
-                  ref="flowerHead"
-                  width="215"
-                  height="215"></canvas>
-        </div>
-        <div class="content-foot">
-          <button class="btn result-btn"
-                  @click="goGarden">種花</button>
-          <button class="btn result-btn"
-                  ref="downloadImg"
-                  @click="downloadFlower">下載圖片</button>
-        </div>
+      </div>
+      <div class="content-foot">
+        <button class="go-btn border-2"
+                :disabled="isChecked"
+                @click="goGarden"> 獲取更多數位養分 <img src="../assets/images/others/arrow.svg"
+               alt="arrow"></button>
+        <p>{{downloadTxt}}</p>
       </div>
     </div>
   </section>
 </template>
 <script>
+import Loading from '@/components/Loading'
 import { uploadData } from '../api/in-the-making.js'
+import { gsap } from 'gsap'
 export default {
+  name: 'Result',
+  components: { Loading },
   data() {
     return {
-      ratio: 0.5,
+      ratio: 0.66,
       flowerData: {},
       flowerHeadUrl: '',
-      flowerAllUrl: '',
+      resultUrl: '',
+      showUrl: '',
+      flowerLanguage1: '',
+      flowerLanguage2: '',
+      isChecked: false,
     }
   },
   methods: {
-    setFlower() {
-      localStorage.setItem('flower', JSON.stringify(this.flowerData))
-    },
-    createFlower(flowerObj, ctx) {
-      flowerObj.forEach((flower) => {
-        ctx.drawImage(flower.part, flower.x, flower.y, flower.width * this.ratio, flower.height * this.ratio)
+    createResultImg(flowerObj, flowerResultCtx, flowerResultCvs, eFlowerCtx, eFlowerCvs) {
+      // 判斷花瓣是香菇的時候 身體要在最上面
+      let flowerOrder = flowerObj
+      const petal = this.flowerData.flower[3]
+      if (petal.name === 'chill 蘑菇') {
+        const body = flowerOrder.splice(4, 1)
+        flowerOrder.push(body[0])
+      }
+      flowerOrder.forEach((flower) => {
+        flowerResultCtx.drawImage(flower.part, flower.x, flower.y, flower.width, flower.height)
+        if (flower.id === 1) {
+          eFlowerCtx.drawImage(flower.part, -32, -150, 612, 982)
+        } else if (flower.id > 2) {
+          eFlowerCtx.drawImage(flower.part, -32, -150, 612, 982)
+        }
       })
-      const flowerAllCvs = this.$refs.flowerAll
-      flowerAllCvs.toBlob((blob) => {
-        this.flowerAllUrl = blob
-      }, 'image/png')
-    },
-    downloadFlower() {
-      const flowerAllCvs = this.$refs.flowerAll
-      flowerAllCvs.toBlob(
+
+      // 大圖 名字
+      flowerResultCtx.font = `900 48px "Noto Sans TC"`
+      flowerResultCtx.fillStyle = '#897BFC'
+      flowerResultCtx.textAlign = 'center'
+      flowerResultCtx.fillText(this.$store.getters.flowerName, 612 / 2, 250)
+      // 大圖 花語
+      flowerResultCtx.font = `500 25px "Noto Sans TC"`
+      flowerResultCtx.fillStyle = '#4294F5'
+      flowerResultCtx.textAlign = 'center'
+      flowerResultCtx.fillText(this.flowerLanguage1, 612 / 2, 835)
+      flowerResultCtx.fillText(this.flowerLanguage2, 612 / 2, 868)
+      // 小圖 名字
+      eFlowerCtx.font = `900 48px "Noto Sans TC"`
+      eFlowerCtx.fillStyle = '#897BFC'
+      eFlowerCtx.textAlign = 'center'
+      eFlowerCtx.fillText(this.$store.getters.flowerName, 548 / 2, 100)
+      // 小圖 花語
+      eFlowerCtx.font = `500 25px "Noto Sans TC"`
+      eFlowerCtx.fillStyle = '#4294F5'
+      eFlowerCtx.textAlign = 'center'
+      eFlowerCtx.fillText(this.flowerLanguage1, 548 / 2, 688)
+      eFlowerCtx.fillText(this.flowerLanguage2, 548 / 2, 721)
+      this.$store.commit('PUSH_MY_E_FLOWER', eFlowerCvs.toDataURL('image/jpg'))
+      flowerResultCvs.toBlob(
         (blob) => {
-          const url = URL.createObjectURL(blob)
-          const link = document.createElement('a')
-          link.href = url
-          link.download = 'flower.png'
-          link.click()
-          // 使用完的物件記得手動清除，不然GC不會幫你清
-          URL.revokeObjectURL(url)
+          this.resultUrl = blob
         },
-        'image/png',
+        'image/jpg',
         1
       )
+
+      this.showUrl = flowerResultCvs.toDataURL('image/jpg', 1)
+      setTimeout(() => {
+        this.$store.commit('LOADING', false)
+        gsap.from('.main', {
+          opacity: 0.3,
+          duration: 0.6,
+        })
+      }, 1500)
     },
     goGarden() {
+      this.isChecked = true
       const formData = new FormData()
       formData.append('files.flowerHead', this.flowerHeadUrl)
-      formData.append('files.flowerAll', this.flowerAllUrl)
+      formData.append('files.flowerAll', this.resultUrl)
       let obj = {
         name: this.flowerData.name,
-        message: this.flowerData.message,
+        title: this.flowerData.exhibits.title,
+        introduction: this.flowerData.exhibits.introduction,
       }
       formData.append('data', JSON.stringify(obj))
       uploadData(formData)
-        .then((response) => {
-          if (response.status === 200) {
-            this.$router.push({
-              name: 'Garden',
-            })
-          }
+        .then(() => {
+          this.$router.replace({
+            name: 'Garden',
+          })
         })
         .catch((err) => {
           console.log(err)
         })
     },
   },
+  computed: {
+    downloadTxt() {
+      if (window.innerWidth > 767) {
+        return '＊右鍵下載圖片＊'
+      } else {
+        return '＊長按下載圖片＊'
+      }
+    },
+  },
   mounted() {
-    // 取得storage
-    const flowerData = JSON.parse(localStorage.getItem('flower'))
-    if (flowerData) {
-      this.flowerData = flowerData
-    }
+    const flowerResultCvs = this.$refs.flowerResult
+    const flowerResultCtx = flowerResultCvs.getContext('2d')
+    const eFlowerCvs = this.$refs.flowerAll
+    const eFlowerCtx = eFlowerCvs.getContext('2d')
+    this.$store.commit('LOADING', true)
+    this.$store.state.flowerLanguage.filter((i) => {
+      if (i.name === this.$store.getters.flowerName) {
+        this.flowerLanguage1 = i.language1
+        this.flowerLanguage2 = i.language2
+        this.$store.commit('PUSH_EXHIBITS', i.exhibits)
+      }
+    })
 
-    const flowerAllCvs = this.$refs.flowerAll
-    const flowerHeadCvs = this.$refs.flowerHead
-    // 建立畫布、畫花
-    const ctx = flowerAllCvs.getContext('2d')
-    const cvsWidth = flowerAllCvs.width
     let images = []
-    const flowerHead = new Image()
+    const flowerBg = new Image()
+    const flowerTag = new Image()
+    const flowerLeafLeft = new Image()
+    const flowerLeafRight = new Image()
+    const flowerBody = new Image()
     const flowerPetal = new Image()
     const flowerFace = new Image()
-    const flowerBody = new Image()
-    const flowerHand = new Image()
-
-    images.push(flowerPetal, flowerHead, flowerFace, flowerBody, flowerHand)
-
-    flowerPetal.src = this.flowerData.flower[0]
-    flowerHead.src = this.flowerData.flower[1]
-    flowerFace.src = this.flowerData.flower[2]
-    flowerBody.src = this.flowerData.flower[3]
-    flowerHand.src = this.flowerData.flower[4]
+    const bgUrl = require('../assets/images/flowers/flower-bg.png')
+    const tagUrl = require('../assets/images/flowers/flower-tag.png')
+    images.push(flowerBg, flowerTag, flowerLeafLeft, flowerLeafRight, flowerBody, flowerPetal, flowerFace)
+    this.flowerData = this.$store.state.flowerData
+    flowerBg.src = bgUrl
+    flowerTag.src = tagUrl
+    flowerLeafLeft.src = this.flowerData.flower[0].imgUrl
+    flowerLeafRight.src = this.flowerData.flower[1].imgUrl
+    flowerBody.src = this.flowerData.flower[2].imgUrl
+    flowerPetal.src = this.flowerData.flower[3].imgUrl
+    flowerFace.src = this.flowerData.flower[4].imgUrl
     images.forEach((image) => {
       image.onload = () => {
         triggerWhenImageReady()
       }
     })
-
     // 定位每朵花的部位
     const flowerObj = [
       {
-        id: 0,
-        part: flowerBody,
-        x: cvsWidth / 2 - 127 * 0.5 * this.ratio,
-        y: 90,
-        width: 127,
-        height: 555,
-      },
-      {
         id: 1,
-        part: flowerHand,
-        x: cvsWidth / 2 - (301 / 2) * this.ratio,
-        y: 170,
-        width: 301,
-        height: 235,
+        part: flowerBg,
+        x: 0,
+        y: 0,
+        width: 612,
+        height: 982,
       },
       {
         id: 2,
-        part: flowerPetal,
-        x: cvsWidth / 2 - (357 / 2) * this.ratio,
-        y: 15,
-        width: 357,
-        height: 347,
+        part: flowerTag,
+        x: 0,
+        y: 0,
+        width: 612,
+        height: 982,
       },
       {
         id: 3,
-        part: flowerHead,
-        x: cvsWidth / 2 - (211 / 2) * this.ratio,
-        y: 50,
-        width: 211,
-        height: 211,
+        part: flowerLeafLeft,
+        x: 0,
+        y: 0,
+        width: 612,
+        height: 982,
       },
       {
         id: 4,
+        part: flowerLeafRight,
+        x: 0,
+        y: 0,
+        width: 612,
+        height: 982,
+      },
+      {
+        id: 5,
+        part: flowerBody,
+        x: 0,
+        y: 0,
+        width: 612,
+        height: 982,
+      },
+      {
+        id: 6,
+        part: flowerPetal,
+        x: 0,
+        y: 0,
+        width: 612,
+        height: 982,
+      },
+      {
+        id: 7,
         part: flowerFace,
-        x: cvsWidth / 2 - (107 / 2) * this.ratio,
-        y: 85,
-        width: 107,
-        height: 98,
+        x: 0,
+        y: 0,
+        width: 612,
+        height: 982,
       },
     ]
     let currentLoaded = 0
@@ -170,46 +242,90 @@ export default {
     function triggerWhenImageReady() {
       currentLoaded++
       if (currentLoaded === images.length) {
-        // console.log('all done')
-        createFlowerHead()
-        _this.createFlower(flowerObj, ctx)
+        createHeadIImg()
+        _this.createResultImg(flowerObj, flowerResultCtx, flowerResultCvs, eFlowerCtx, eFlowerCvs)
       }
     }
 
     // 生成花頭圖片
-    function createFlowerHead() {
+    const flowerHeadCvs = this.$refs.flowerHead
+    function createHeadIImg() {
       const ctxHead = flowerHeadCvs.getContext('2d')
-      ctxHead.drawImage(flowerObj[2].part, 107 - (357 / 2) * _this.ratio, 107 - (347 / 2) * _this.ratio, flowerObj[2].width * _this.ratio, flowerObj[2].height * _this.ratio)
-      ctxHead.drawImage(flowerObj[3].part, 107 - (211 / 2) * _this.ratio, 107 - (211 / 2) * _this.ratio, flowerObj[3].width * _this.ratio, flowerObj[3].height * _this.ratio)
-      _this.flowerData.myFlower = flowerHeadCvs.toDataURL('image/png')
+      ctxHead.drawImage(flowerObj[5].part, -191, -263, flowerObj[5].width, flowerObj[5].height)
+      ctxHead.drawImage(flowerObj[6].part, -191, -263, flowerObj[6].width, flowerObj[6].height)
+      _this.$store.commit('PUSH_MY_FLOWER_HEAD', flowerHeadCvs.toDataURL('image/png'))
       _this.flowerHeadUrl = flowerHeadCvs.toBlob((blob) => {
         _this.flowerHeadUrl = blob
       }, 'image/png')
-      _this.setFlower()
     }
   },
 }
 </script>
-<style lang="scss" scope>
+<style lang="scss" scoped>
+@import '@/assets/style/_mixin.scss';
+@import '@/assets/style/_variable.scss';
+@font-face {
+  font-family: 'Noto Sans TC';
+  src: 'https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Russo+One&display=swap';
+}
+.main {
+  @include pc {
+    display: flex;
+    align-items: center;
+  }
+  background-image: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url('../assets/images/covers/ee_cover_garden_BG大.jpg');
+}
+canvas {
+  font-family: 'Noto Sans TC', sans-serif;
+}
+.container {
+  margin: 15px auto;
+}
 .flower {
   position: relative;
 }
+.content-head {
+  padding: 8px;
+  background-color: $purple;
+}
+h2 {
+  padding: 8px 0;
+  font-size: 32px;
+}
 .content-body {
   position: relative;
-  margin: 24px 0;
-}
-.content-foot {
-  display: flex;
+  margin-top: -2px;
+  background-color: #fff;
 }
 .flowerHead {
+  display: none;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  display: none;
 }
-.result-btn {
-  width: 50%;
-  padding: 8px;
-  border-radius: 20px;
+.e-flower {
+  border: 5px solid $purple;
+  border-radius: 10px;
+  overflow: hidden;
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+.content-foot {
+  margin-top: 14px;
+}
+.go-btn {
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  img {
+    margin-left: 8px;
+  }
+}
+p {
+  padding-top: 6px;
+  font-size: 14px;
 }
 </style>

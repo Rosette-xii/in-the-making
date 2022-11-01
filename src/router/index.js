@@ -10,34 +10,9 @@ const routes = [
     component: () => import('../views/Home.vue')
   },
   {
-    path: '/quiz0',
-    name: 'Quiz',
-    component: () => import('../views/Quiz0.vue'),
-  },
-  {
-    path: '/quiz1',
-    name: 'Quiz1',
-    component: () => import('../views/Quiz1.vue'),
-  },
-  {
-    path: '/quiz2',
-    name: 'Quiz2',
-    component: () => import('../views/Quiz2.vue'),
-  },
-  {
-    path: '/quiz3',
-    name: 'Quiz3',
-    component: () => import('../views/Quiz3.vue'),
-  },
-  {
-    path: '/quiz4',
-    name: 'Quiz4',
-    component: () => import('../views/Quiz4.vue'),
-  },
-  {
-    path: '/quiz5',
-    name: 'Quiz5',
-    component: () => import('../views/Quiz5.vue'),
+    path: '/quizes',
+    name: 'Quizes',
+    component: () => import('../views/Quizes.vue')
   },
   {
     path: '/message',
