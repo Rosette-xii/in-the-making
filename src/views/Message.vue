@@ -78,9 +78,9 @@ h2 {
   padding: 20px 0;
 }
 input {
-  width: 80%;
   margin-bottom: 24px;
   padding: 10px;
+  width: 80%;
   font-size: initial;
   border: 1px solid #000;
   &::placeholder {
@@ -93,7 +93,6 @@ p {
 }
 button {
   margin-bottom: 20px;
-  background: $gradient-purple;
 }
 </style>
 

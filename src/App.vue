@@ -27,7 +27,6 @@ body {
   width: 100%;
   height: 100vh;
   box-sizing: border-box;
-  // background-color: $blue;
   overflow: hidden;
   @include pc {
     background-image: url('./assets/images/covers/pc-bg.jpg');
@@ -38,16 +37,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   width: 100%;
+  height: calc(var(--vh, 1vh) * 100);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  // background-color: $blue;
   text-align: center;
   font-family: 'Noto Sans TC', sans-serif;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  height: calc(var(--vh, 1vh) * 100);
   @include pc {
     height: 100%;
   }
@@ -76,9 +74,9 @@ a {
   }
 }
 .container {
+  padding: 24px;
   max-width: 345px;
   margin: 0 auto;
-  padding: 24px;
 }
 ul {
   list-style-type: none;

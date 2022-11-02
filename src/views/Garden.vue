@@ -356,8 +356,8 @@ export default {
   }
   .content-head {
     position: relative;
-    padding: 8px;
     display: flex;
+    padding: 8px;
     justify-content: space-between;
     background-color: $purple;
     color: #fff;
@@ -366,18 +366,18 @@ export default {
     margin-right: 6px;
   }
   .check-flower-btn {
-    padding: 5px 16px;
     display: flex;
+    padding: 5px 16px;
     background-color: #ffe1cd;
-    border-radius: 100px;
     color: #000;
+    border-radius: 100px;
     font-weight: bold;
   }
   .replay-btn {
     padding: 5px;
     background-color: transparent;
-    font-weight: bold;
     border: none;
+    font-weight: bold;
   }
   .content-body {
     position: relative;
@@ -404,10 +404,10 @@ export default {
   }
   .user-info {
     z-index: 5;
-    padding: 10px 15px;
     display: grid;
     grid-template-columns: 1fr 2fr;
     align-items: center;
+    padding: 10px 15px;
     background-color: #ffec4c;
     border-bottom: 2px solid #000;
     text-align: left;
@@ -420,7 +420,7 @@ export default {
     height: 80px;
     background-color: #fff;
     border: 2px solid #000;
-    border-radius: 50%;
+      border-radius: 50%;
     img {
       width: 80%;
     }
@@ -437,9 +437,9 @@ export default {
       letter-spacing: 0;
     }
     span {
+      color: $dark-purple;
       font-size: 12px;
       font-weight: bold;
-      color: $dark-purple;
     }
     .close-btn {
       right: -13px;
@@ -450,10 +450,9 @@ export default {
 .eFlower {
   z-index: 10;
   .content-head {
-    padding: 0;
-    height: 55px;
     position: relative;
     display: block;
+    padding: 0;
     background-color: #ffec4c;
     color: $purple;
     font-size: 20px;
@@ -462,22 +461,23 @@ export default {
     line-height: 50px;
   }
   .content-body {
-    height: auto;
     display: flex;
     align-items: center;
+    height: auto;
   }
   img {
-    transform: scale(1.02);
+    display: block;
     width: 100%;
     height: auto;
+    transform: scale(1.02);
   }
 }
 .close-btn {
   position: absolute;
   right: 5px;
   top: 50%;
-  transform: translateY(-50%);
   padding: 8px;
+  transform: translateY(-50%);
   background-color: transparent;
   border: none;
 }

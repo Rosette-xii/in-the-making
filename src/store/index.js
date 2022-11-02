@@ -14,17 +14,17 @@ export default new Vuex.Store({
           // 正確的話隨機回傳 0~2  Math.floor(Math.random()*3)
           {
             id: 1,
-            name: 'seed a',
+            name: '循環種子',
             imgUrl: require('@/assets/images/seeds/seed-a.svg'),
           },
           {
             id: 2,
-            name: 'seed b',
+            name: '感性種子',
             imgUrl: require('@/assets/images/seeds/seed-b.svg'),
           },
           {
             id: 3,
-            name: 'seed c',
+            name: '恆星種子',
             imgUrl: require('@/assets/images/seeds/seed-c.svg'),
           },
         ],
@@ -403,7 +403,7 @@ export default new Vuex.Store({
         language2: '但需要數位知識力+++的花！',
         exhibits: {
           title: 'AI智慧小車趴趴走',
-          introduction: 'AI Ｘ STEAM 提升學習創造力',
+          introduction: 'AI X STEAM 提升學習創造力',
         },
       },
       {
