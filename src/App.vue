@@ -31,6 +31,7 @@ body {
   @include pc {
     background-image: url('./assets/images/covers/pc-bg.jpg');
     background-size: cover;
+    background-position: center;
   }
 }
 #app {
